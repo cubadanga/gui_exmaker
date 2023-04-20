@@ -229,6 +229,7 @@ def write_categori_name(categori_num): #카테고리 번호를 넣으면 네이�
     strCalevel4 = df_cat['세분류'].to_string(index=False)
     return strCalevel1, strCalevel2, strCalevel3, strCalevel4
 
+
 def mainImg_Edit(file_path, output_path): #특정 폴더에 담겨있는 메인이미지를 불러와서 product 코드로 이름을 변경하고 제일 첫번째를 메인이미지로 나머지를 서브이미지로 엑셀파일을 작성함.
     try:
         file_names = os.listdir(file_path)
@@ -257,20 +258,16 @@ def mainImg_Edit(file_path, output_path): #특정 폴더에 담겨있는 메인�
         del images[0]
         subImages = ",".join(images)
         #destination = "./excel/images/" + productCord + '-' + str(i) + '.jpg'
-
-        def folder_file_copy():
-            
-            file_dir = os.path.dirname('./mainImages/')
-            file_cnt = 1
-            for path, dirs, files in os.walk(file_dir):
-                for file in files:
-                    file_path = os.path.join(path,file)
-                    file_cnt += 1
-                    dest_path = './excel/' + file
-                    shutil.copy(file_path, dest_path)
-                    
-        folder_file_copy()
-
+           
+        file_dir = os.path.dirname(file_path+'/')
+        file_cnt = 1
+        for path, dirs, files in os.walk(file_dir):
+            for file in files:
+                rename_file_path = os.path.join(path,file)
+                file_cnt += 1
+                dest_path = './excel/' + file
+                shutil.copy(rename_file_path, dest_path)
+                
     else:
         print(Fore.RED + "오류 - 메인이미지 폴더에 이미지가 없습니다.")
         mainImage = ""
@@ -549,10 +546,10 @@ def make_html(writeSheet_DF, pName, addDescBool, opImg_position): #상세페이�
         sys.exit()
     
 
-    descPname = '<br><br><h1 style="text-align: center;"><strong>' + pName + "</strong></h1><br><br>"+'\n'
-    naverTop = '<div align="center"><!-- 여기서부터 상단 공지 이미지 --><img src="' + naver_top + '"/></div>'+'\n'
-    naverBottom = '<div align="center"><!-- 여기서부터 하단 공지1 이미지 --><img src="' + naver_bottom + '"/></div>'+'\n'
-    naverBottom2 = '<div align="center"><!-- 여기서부터 하단 공지2 이미지 --><img src="' + naver_bottom2 + '"/></div>'+'\n'
+    descPname = '<br><br><h1 style="text-align: center;"><strong>' + pName + "</strong></h1><br><br>"+'<br>'
+    naverTop = '<br>'+'<div align="center"><!-- 여기서부터 상단 공지 이미지 --><img src="' + naver_top + '"/></div>'+'<br>'
+    naverBottom ='<br>'+ '<div align="center"><!-- 여기서부터 하단 공지1 이미지 --><img src="' + naver_bottom + '"/></div>'+'<br>'
+    naverBottom2 ='<br>'+ '<div align="center"><!-- 여기서부터 하단 공지2 이미지 --><img src="' + naver_bottom2 + '"/></div>'
     #shop11Top = '<img src="' + shop11st_top + '"/>'+'\n'
     #shop11stBottom = '<img src="' + shop11st_bottom + '"/>'+'\n'
     
@@ -668,6 +665,9 @@ mainImg_file_path = './mainImages'
 mainImg_output_path = './mainImages'
 product_path = './product.xlsx' # product.xlsx 파일이 있는 경로
 setting_path = './product.xlsx' # 셋팅 관련 엑셀 파일이 있는 경로
+
+
+########## 엑셀 파일을 오픈하면 아래 코드 바로 실행 ############
 writeSheet_DF, setting_DF = readExcel(product_path, setting_path) #엑셀 파일을 불러서 데이터프레임 형식으로 만든다.
 
 # 파일저장용 시간 불러오기
@@ -719,14 +719,25 @@ videourl = str(writeSheet_DF['동영상url'][0]) # 비디오url 추출
 optionTitle = optionTitle(writeSheet_DF) #옵션명 추출하여 네이버 포멧으로 변경
 progress_text(productCord, videourl) #위의 추출된 데이터의 결과 텍스트 출력
 
+#추출한 카테고리 번호로 네이버 카테고리 전체 경로 이름을 찾아서 기입한다.
+strCalevel1, strCalevel2, strCalevel3, strCalevel4 = write_categori_name(categori_num)
+
+# gui상에 표시될 카테고리 텍스트
+fullname_categori = strCalevel1 +' > '+ strCalevel2 +' > '+ strCalevel3 +' > '+ strCalevel4
+
 #모든 가격 계산
 finalPrice, discount_price, optionValue, optionPrice, warningMemo, rate, currency_type, prime_cost, tune_marginPrice, tuneMargin, tuneMarginRate, quantyString = price_Calculation(writeSheet_DF)
 
-#상세페이지 작성
-descPN, descSharing, op_imgurls, descPages = make_html(writeSheet_DF, pName, addDescBool, opImg_position)
+########## 여기까지 ############
 
-#상세페이지 미리보기
+# 1. 이미지 파일명을 불러옴. 2. 이미지 파일명을 변경함. 3. 이미지 파일 저장소로 복사
+mainImage, subImages = mainImg_Edit(mainImg_file_path, mainImg_output_path)
+
+#상세페이지 미리보기 버튼 클릭시
+#상세페이지 작성 후 브라우저로 보여줌
+descPN, descSharing, op_imgurls, descPages = make_html(writeSheet_DF, pName, addDescBool, opImg_position)
 veiw_Desc(descPN)
+
 
 # ### 엑셀에 기재될 배송비
 if ship_method == "유료" or "수량별":
@@ -736,17 +747,9 @@ else:
 
 ship_price = str(ship_price)
 
-#추출한 카테고리 번호로 네이버 카테고리 전체 경로 이름을 찾아서 기입한다.
-strCalevel1, strCalevel2, strCalevel3, strCalevel4 = write_categori_name(categori_num)
-
-# 1. 이미지 파일명을 불러옴. 2. 이미지 파일명을 변경함. 3. 이미지 파일 저장소로 복사
-mainImage, subImages = mainImg_Edit(mainImg_file_path, mainImg_output_path)
-
 #스마트스토어 필드명 불러오기
 store_field = pd.read_excel('./product.xlsx', sheet_name = 'store', header = 0)
 storeField_list = list(store_field['네이버'])
-store_field2 = pd.read_excel('./product.xlsx', sheet_name = 'store', header = 0)
-storeField_list2 = list(store_field2['네이버'])
 
 #스마트스토어 본인용 엑셀파일 생성
 wb = openpyxl.Workbook()
@@ -756,7 +759,7 @@ ws.append(storeField_list)
 #스마트스토어 배포용 엑셀파일 생성
 p_wb = openpyxl.Workbook()
 p_ws = p_wb.active
-p_ws.append(storeField_list2)
+p_ws.append(storeField_list)
 
 #스마트스토어 본인용 엑셀파일 작성
 ws["A2"].value = "신상품"
