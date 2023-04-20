@@ -645,10 +645,10 @@ def make_html(writeSheet_DF, pName, addDescBool, opImg_position): #상세페이�
     print("8. 상세페이지 작성 완료!")
     return descPN, descSharing, op_imgurls, descPages
 
-def veiw_Desc(descPN):
+def veiw_Desc(descPN): # 미리 보기 버튼 클릭 시 html 파일을 생성하여 브라우저에서 실행 시킴
     current_dir = os.getcwd()
     
-    file_name = 'temp.html'
+    file_name = '/temp.html'
     file_path = current_dir + file_name
     print(file_path)
     with open(file_path, 'w') as file:
