@@ -232,7 +232,7 @@ def write_categori_name(categori_num): #카테고리 번호를 넣으면 네이�
 
 def mainImg_Edit(file_path, output_path): #특정 폴더에 담겨있는 메인이미지를 불러와서 product 코드로 이름을 변경하고 제일 첫번째를 메인이미지로 나머지를 서브이미지로 엑셀파일을 작성함.
     try:
-        file_names = os.listdir(file_path)
+        file_names = os.listdir(file_path) #file_path가 유저가 선택한 폴더의 경로
 
     except FileNotFoundError as e:
         print(Fore.RED + '오류 - mainImage(메인이미지) 폴더가 존재하지 않습니다.')
@@ -529,12 +529,10 @@ def price_Calculation(writeSheet_DF):
     print('7. 옵션 작성 완료!')
     return finalPrice, discount_price, optionValue, optionPrice, warningMemo, rate, currency_type, prime_cost, tune_marginPrice, tuneMargin, tuneMarginRate, quantyString
 
-def make_html(writeSheet_DF, pName, addDescBool, opImg_position): #상세페이지 작성 기능
+def make_html(desc_html, pName, addDescBool, opImg_position): #상세페이지 작성 기능
 
     try:
-        dpHtml = writeSheet_DF['상세페이지']
-        dpHtml_list = list(dpHtml)
-        preDescPages = dpHtml_list[0]
+        preDescPages = desc_html
         descPages2 = re.sub("img referrerpolicy='no-referrer'|{LINK}|", "", preDescPages)
         descPages1 = re.sub("< ", "<", descPages2)+'\n'
         descPages = '<div align="center"><!-- 상세페이지 수정은 여기서부터 -->' + descPages1 + '<!-- 상세페이지 수정은 여기까지 --></div>'
@@ -664,8 +662,7 @@ judge(password,passTag) #웹에서 가져온 패스워드와 set.ini 파일에 �
 mainImg_file_path = './mainImages'
 mainImg_output_path = './mainImages'
 product_path = './product.xlsx' # product.xlsx 파일이 있는 경로
-setting_path = './product.xlsx' # 셋팅 관련 엑셀 파일이 있는 경로
-
+setting_path = './product.xlsx' # 셋팅 관련 엑셀 파일이 있는 경로. 유저가 선택할 수 없다.
 
 ########## 엑셀 파일을 오픈하면 아래 코드 바로 실행 ############
 writeSheet_DF, setting_DF = readExcel(product_path, setting_path) #엑셀 파일을 불러서 데이터프레임 형식으로 만든다.
@@ -735,7 +732,7 @@ mainImage, subImages = mainImg_Edit(mainImg_file_path, mainImg_output_path)
 
 #상세페이지 미리보기 버튼 클릭시
 #상세페이지 작성 후 브라우저로 보여줌
-descPN, descSharing, op_imgurls, descPages = make_html(writeSheet_DF, pName, addDescBool, opImg_position)
+descPN, descSharing, op_imgurls, descPages = make_html(desc_html, pName, addDescBool, opImg_position)
 veiw_Desc(descPN)
 
 
