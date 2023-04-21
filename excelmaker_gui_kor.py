@@ -491,6 +491,7 @@ def price_Calculation(writeSheet_DF):
             optionPrice = deff_price
             
     elif optionColcnt == 5:
+        df_gcprice = df_gc.drop_duplicates(subset=optionT1,ignore_index=False)
         df_option1 = df_gc[optionT1].drop_duplicates()  # 첫번째 필드의 데이터들을 프레임에 담는다.
         quanty_list = list(df_gcprice['재고수량'])
         quantyString = ",".join(quanty_list) #재고수량을 naver 포멧으로 변경
