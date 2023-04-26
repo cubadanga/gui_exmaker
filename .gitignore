@@ -184,3 +184,9 @@ pyrightconfig.json
 temp.html
 bg.jpg
 .gitignore
+guivenv/pyvenv.cfg
+guivenv/Scripts/activate
+guivenv/Scripts/activate.bat
+guivenv/Scripts/Activate.ps1
+guivenv/Scripts/deactivate.bat
+.gitignore
