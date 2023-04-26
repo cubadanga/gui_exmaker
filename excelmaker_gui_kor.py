@@ -127,7 +127,7 @@ def extract_id(site, url): #쇼핑몰에 따라 제품 ID를 크롤링하고 쇼
     else:
         return "", ""
 
-def progress_text(productCord, videourl): #데이터 추출관련 문구 출력
+def progress_text(productCord): #데이터 추출관련 문구 출력
     if productCord =="":
         print(Fore.RED + '오류 - 입력한 주소가 해당 쇼핑몰의 주소인지 확인하세요. \n예) 타오바오는 "taobao", 1688은 "shop1688"이라고 입력하셔야 합니다.'+Fore.RESET+'\n')
         print(Fore.RESET + "엔터를 누르면 종료합니다.")
@@ -139,13 +139,6 @@ def progress_text(productCord, videourl): #데이터 추출관련 문구 출력
         print(f'2. 사이트 url 추출성공: [{product_url}]')
         print(f'3. 제품코드 추출성공: [{productCord}]')
         print(f'4. 제목 추출 성공: [{pName}]')
-
-    if videourl == 'nan':
-        videourl = '동영상이 없습니다.'
-        print('5. 동영상 url은 없었습니다.')
-        
-    else:
-        print('5. 동영상 url 복사완료!')
 
 def optionTitle(write_df): #네이버 포멧 옵션명 제작 함수
     df = write_df
@@ -161,7 +154,7 @@ def optionTitle(write_df): #네이버 포멧 옵션명 제작 함수
         aInput = input("")
         sys.exit()
 
-def opImg_Download(op_imgurls): #옵션 이미지를 폴더에 다운로드 함.
+def opImg_Download(op_imgurls,path_Option): #옵션 이미지를 폴더에 다운로드 함.
     try:
         optionNum = 0
         for i in op_imgurls: 
@@ -191,13 +184,16 @@ def createFolder(directory): # 결과 파일 저장 폴더 생성
         aInput = input("")
         sys.exit()
 
-def descImg_Download(descPages): # 상세 이미지 url 추출 및 다운로드
-    descPages = descPages.replace('?getAvatar=avatar','')
-    modUrls = re.findall('<img.*?src=[\'"](.*?)[\'"].*?>', descPages)
+def descImg_Download(descPages,path_Desc): # 상세 이미지 url 추출 및 다운로드
+    descimgNum = 0
+    mod_urls = []
+    img_tags = re.findall(r'<img[^>]*src="([^"]+?\.(?:jpg|jpeg|png|gif))', descPages)
 
+    for url in img_tags: 
+        mod_urls.append(url)
+    
     try:    
-        for i in modUrls:
-            descimgNum = 0
+        for i in mod_urls:
             file_ext = i.split('.')[-1] # 확장자 추출
             path = path_Desc + '/' + productCord + '_desc_' + str(descimgNum)+'.' + file_ext
             random_number = round(random.uniform(0.02, 0.3), 2)
@@ -302,9 +298,11 @@ def price_Calculation(writeSheet_DF):
             duty = round(goods_clear['물건가격'].max() * payment_fee * int(rate)/rate_USD)
         elif currency_type =='USD':
             rate = rate_USD
+            payment_fee = 1
             duty = round(goods_clear['물건가격'].max())
         else:
             rate = 1
+            payment_fee = 1
             duty = round(goods_clear['물건가격'].max()/rate_USD)
 
     ### 기본 판매가 계산(옵션별 판매가격 계산)
@@ -387,7 +385,7 @@ def price_Calculation(writeSheet_DF):
 
     else:
         if ship_method == "유료" or "수량별":
-            print("* [배송선택] - 유료배송")
+            print("5. 배송선택은 - 유료배송")
             finalPrice = dp_price-rship_price
             finalPrice = np.int64(round(finalPrice,-2))
         else:
@@ -649,12 +647,21 @@ def veiw_Desc(descPN): # 미리 보기 버튼 클릭 시 html 파일을 생성�
     
     file_name = '/temp.html'
     file_path = current_dir + file_name
-    print(file_path)
+
     with open(file_path, 'w') as file:
         file.write(descPN)
     webbrowser.open_new_tab(file_path)
-    print('브라우저 실행!')
 
+def write_video_url(videourl):
+    if videourl == 'nan':
+        videourl = '동영상이 없습니다.'
+        print('13. 동영상 url은 없었습니다.')
+    else:
+        print('13. 동영상 url 복사완료!')
+
+    fVideoUrl = open('./excel/' + productCord + '/동영상주소.txt','w') #video url을 저장할 텍스트 파일 생성
+    fVideoUrl.write(videourl) #video url을 텍스트파일에 쓰기
+    fVideoUrl.close() #텍스트 파일 닫기
 
 password = loadPassword() #set.ini 파일에서 패스워드를 읽는 함수
 passTag = getPtag("https://sites.google.com/view/test-exceldoc/pass") #관리자 패스워드가 저장된 웹페이지 url을 전달하여 패스워드를 크롤링 해 오는 getPtag 함수 실행
@@ -715,7 +722,7 @@ categori_num = int(writeSheet_DF['카테고리번호'][0])
 desc_html = writeSheet_DF['상세페이지'][0] #상세페이지 추출
 videourl = str(writeSheet_DF['동영상url'][0]) # 비디오url 추출
 optionTitle = optionTitle(writeSheet_DF) #옵션명 추출하여 네이버 포멧으로 변경
-progress_text(productCord, videourl) #위의 추출된 데이터의 결과 텍스트 출력
+progress_text(productCord) #위의 추출된 데이터의 결과 텍스트 출력
 
 #추출한 카테고리 번호로 네이버 카테고리 전체 경로 이름을 찾아서 기입한다.
 strCalevel1, strCalevel2, strCalevel3, strCalevel4 = write_categori_name(categori_num)
@@ -983,15 +990,10 @@ createFolder(path_Option)
 createFolder(path_Backup)
 print('12. 다운로드 폴더 생성 완료!'+'\n')
 
-opImg_Download(op_imgurls) # 옵션 이미지 다운로드
-descImg_Download(descPages) # 상세페이지 이미지 다운로드
-
-fVideoUrl = open('./excel/' + productCord + '/동영상주소.txt','w') #video url을 저장할 텍스트 파일 생성
-fVideoUrl.write(videourl) #video url을 텍스트파일에 쓰기
-fVideoUrl.close() #텍스트 파일 닫기
-
+opImg_Download(op_imgurls,path_Option) # 옵션 이미지 다운로드
+descImg_Download(descPages,path_Desc) # 상세페이지 이미지 다운로드
+write_video_url(videourl) #동영상 url txt 파일 생성
 copy_df = writeSheet_DF #백업 파일 생성
 copy_df = writeSheet_DF.to_excel(excel_writer=path_Backup+'/product_'+productCord+'_'+tday_s+'.xlsx', index=False) #백업 파일 저장
-
 print('\n'+ Fore.LIGHTBLUE_EX + "완성! 엔터를 누르면 종료합니다." + Fore.RESET)
 aInput = input("")
