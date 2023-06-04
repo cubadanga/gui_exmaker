@@ -229,7 +229,7 @@ def write_categori_name(categori_num): #카테고리 번호를 넣으면 네이�
 def mainImg_Edit(file_path, output_path): #특정 폴더에 담겨있는 메인이미지를 불러와서 product 코드로 이름을 변경하고 제일 첫번째를 메인이미지로 나머지를 서브이미지로 엑셀파일을 작성함.
     try:
         file_names = os.listdir(file_path) #file_path가 유저가 선택한 폴더의 경로
-
+        
     except FileNotFoundError as e:
         print(Fore.RED + '오류 - mainImage(메인이미지) 폴더가 존재하지 않습니다.')
         print(Fore.RESET + "엔터를 누르면 종료합니다.")
@@ -240,7 +240,18 @@ def mainImg_Edit(file_path, output_path): #특정 폴더에 담겨있는 메인�
         i = 1
         j = 0
         images=[]
+        count = 1
+        originName = ""
+        newName = ""
 
+        for name in file_names:
+            originName = os.path.join(file_path,name)
+            newName = str(count) + '.jpg'
+            newName = os.path.join(output_path,newName)
+            os.rename(originName,newName)
+            count += 1
+        
+        file_names = os.listdir(file_path)  
         for name in file_names:
             src = os.path.join(file_path,name)
             dst = productCord + '-' + str(i) + '.jpg'
@@ -712,6 +723,7 @@ naver_bottom = str(set_list[24]) #스스 상세페이지에 삽입되는 하단�
 naver_bottom2 = str(set_list[25]) #스스 상세페이지에 삽입되는 하단이미지 2
 addDescBool = int(set_list[26])  #개인 상세페이지 상,하단 이미지 사용 유무
 opImg_position = int(set_list[27]) #옵션이미지 위치
+is_ImgDownload = int(set_list[28]) #상세이미지, 옵션이미지 다운로드 여부
 
 # * product.xlsx 파일->wirte 시트에서 유저가 입력한 값 추출
 shop_type =writeSheet_DF['사이트'][0] ### wirte 시트 url 필드에서 쇼핑몰 종류별로 상품ID 추출 및 표준url 생성
@@ -984,15 +996,21 @@ path_Option = './excel/'+ productCord +'/Option'
 path_Backup = './excel/product_backup'
 
 # 다운로드 이미지 저장용 폴더 생성
-createFolder(path_productCord)
-createFolder(path_Desc)
-createFolder(path_Option)
-createFolder(path_Backup)
-print('12. 다운로드 폴더 생성 완료!'+'\n')
+if is_ImgDownload == 0:
+    createFolder(path_productCord)
+    createFolder(path_Desc)
+    createFolder(path_Option)
+    createFolder(path_Backup)
+    print('12. 다운로드 폴더 생성 완료!'+'\n')
+    
+    opImg_Download(op_imgurls,path_Option) # 옵션 이미지 다운로드
+    descImg_Download(descPages,path_Desc) # 상세페이지 이미지 다운로드
+    
+    if not videourl == 'nan':
+        write_video_url(videourl) #동영상 url txt 파일 생성
+else:
+    print('12. 상세/옵션 이미지다운로드 생략!(설정에서 변경가능)'+'\n')
 
-opImg_Download(op_imgurls,path_Option) # 옵션 이미지 다운로드
-descImg_Download(descPages,path_Desc) # 상세페이지 이미지 다운로드
-write_video_url(videourl) #동영상 url txt 파일 생성
 copy_df = writeSheet_DF #백업 파일 생성
 copy_df = writeSheet_DF.to_excel(excel_writer=path_Backup+'/product_'+productCord+'_'+tday_s+'.xlsx', index=False) #백업 파일 저장
 print('\n'+ Fore.LIGHTBLUE_EX + "완성! 엔터를 누르면 종료합니다." + Fore.RESET)
